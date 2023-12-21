@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const course_review = mongoose.Schema({
+const review = mongoose.Schema({
     start: {
         type: Number,
         min: 0,
@@ -10,14 +10,10 @@ const course_review = mongoose.Schema({
         type: String,
         required: true
     },
-    user_id: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
-    },
-    course_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'course'
     }
 }, { timestamp: true })
 
-module.exports = mongoose.model('course_review', course_review)
+module.exports = mongoose.model('review', review)

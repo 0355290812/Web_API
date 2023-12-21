@@ -1,30 +1,43 @@
 const mongoose = require('mongoose')
 
 const instructor = mongoose.Schema({
+    description: {
+        type: String
+    },
     image: {
         type: String,
         required: true
     },
-    sector: {
+    subjects: [{
         type: String,
         required: true
-    },
-    certificates: {
-        type: [String],
-        required: true
-    },
-    academic_level: {
-        type: [String],
-        required: true
-    },
+    }],
+    certificates: [{
+        name: {
+            type: String,
+            required: true
+        },
+        image: {
+            type: String
+        }
+    }],
+    academic_level: [{
+        name: {
+            type: String,
+            required: true
+        },
+        image: {
+            type: String
+        }
+    }],
     follower: {
         type: Number,
         default: 0
     },
-    review: {
-        type: [mongoose.Schema.Types.ObjectId],
+    reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'review'
-    },
+    }],
     avg_rating: {
         type: Number,
         default: null
@@ -33,7 +46,11 @@ const instructor = mongoose.Schema({
         type: Number,
         default: 0
     },
-    user_id: {
+    number_of_registration: {
+        type: Number,
+        default: 0
+    },
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },

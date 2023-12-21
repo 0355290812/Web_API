@@ -1,21 +1,25 @@
 const express = require('express')
 const router = express.Router()
-const { getAllInstructor, getInstructorByID, createInstructor } = require('../controllers/instructor.controllers')
-const { getAllCourse, getCourseById } = require('../controllers/course.controllers')
+const { getStatusInstructor, getAllInstructor, getInstructorByID, createInstructor } = require('../controllers/instructor.controllers')
+const { getAllCourse, getCourseById, buyCourse, checkRegistered } = require('../controllers/course.controllers')
 const { getCoursesBookmarked, addCourseBookmarked, deleteCourseBookmarked } = require('../controllers/bookmarked.controllers')
-const { checkCourse } = require('../utils/checkcourse.utils')
+const { getCoursesWatching } = require('../controllers/user_course.controllers')
 
 router.get('/instructor', getAllInstructor)
 router.get('/instructor/:id', getInstructorByID)
 router.post('/register-instructor', createInstructor)
+router.get('/status-instructor', getStatusInstructor)
+
+router.get('/course/bookmarked', getCoursesBookmarked)
+router.put('/course/:id/bookmarked', addCourseBookmarked)
+router.delete('/course/:id/bookmarked', deleteCourseBookmarked)
+
+router.get('/course/watching', getCoursesWatching)
 
 router.get('/course', getAllCourse)
 router.get('/course/:id', getCourseById)
-router.get('/course/:id/lesson/:idlesson', checkCourse, (req, res) => {})
+router.post('/course/:id/registration', buyCourse)
+router.get('/course/:id/status', checkRegistered)
 
-
-router.get('/course/bookmarked', getCoursesBookmarked)
-router.put('/course/bookmarked', addCourseBookmarked)
-router.delete('/course/bookmarked', deleteCourseBookmarked)
 
 module.exports = router

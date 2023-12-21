@@ -1,17 +1,15 @@
 const mongoose = require('mongoose')
 
 const user_course = mongoose.Schema({
-    user_id: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
+        required: true
     },
-    course_id: {
+    course: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'course'
-    },
-    status: {
-        type: String,
-        enum: ["paid", "cancelled"]
+        ref: 'course',
+        required: true
     }
 }, { timestamp: true })
 

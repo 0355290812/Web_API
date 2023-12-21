@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const bookmarked = mongoose.Schema({
-    user_id: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },

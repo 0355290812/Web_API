@@ -1,6 +1,7 @@
 const User = require('../models/user.models')
 const BlackList = require('../models/blackList.models')
 const { createJWT, hashPassword, comparePassword } = require('../utils/auth.utils')
+const Bookmarked = require('../models/bookmarked.models')
 const jwt = require('jsonwebtoken')
 
 const createNewUser = async (req, res) => {
@@ -8,13 +9,21 @@ const createNewUser = async (req, res) => {
 
     const usernameExist = await User.findOne({username: req.body.username})
     if (usernameExist) {
-        res.status(401).json({message: "Username already exist"})
+        res.status(401).json({
+            status: "failed",
+            data: [],
+            message: "Username already exist"
+        })
         return
     }
 
     const emailExist = await User.findOne({email: req.body.email})
     if (emailExist) {
-        res.status(401).json({message: "Email already exist"})
+        res.status(401).json({
+            status: "failed",
+            data: [],
+            message: "Email already exist"
+        })
         return
     }
 
@@ -32,6 +41,9 @@ const createNewUser = async (req, res) => {
             message: "Welcome to the Website!"
         })
     }
+
+    const bookmarked = await Bookmarked.create({ user: user.id })
+    
 }
 
 const signin = async(req, res) => {
@@ -42,28 +54,49 @@ const signin = async(req, res) => {
     const isValid = await comparePassword(req.body.password, user.password)
 
     if (!isValid) {
-        res.status(401)
-        res.send('Invalid username or password')
+        res.status(401).json({
+            status: "failed",
+            data: [],
+            message: "Invalid username or password"
+        })
         return
     }
 
     const token = createJWT(user)
     res.status(200).json({
         status: "success",
-        data: token,
+        data: {token},
         message: "Login Success"
     })
 }
 
 const logout = async(req, res) => {
     const bearer = req.headers.authorization
-    if (!bearer) return res.sendStatus(201)
+    if (!bearer) {
+        res.status(401).json({
+            status: "failed",
+            data: [],
+            message: "Unauthorized"
+        })
+        return
+    }
+
     const [,token] = bearer.split(' ')
     const checkIfBlacklisted = await BlackList.findOne({token})
-    if (checkIfBlacklisted) return res.sendStatus(204)
+    if (checkIfBlacklisted) {
+        res.status(204).json({
+            status: "failed",
+            data: [],
+            message: "Token has been blocked"
+        })
+    }
 
     const newBlacklist = await BlackList.create({token})
-    res.status(200).json({message: 'You are logged on'})
+    res.status(200).json({
+        status: "success",
+        data: [],
+        message: 'You are logged on'
+    })
 }
 
 

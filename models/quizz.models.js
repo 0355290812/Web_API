@@ -8,7 +8,7 @@ const quizz = mongoose.Schema({
                     type: String,
                     required: true
                 },
-                answer: {
+                answers: {
                     type: [String],
                     required: true
                 },
@@ -18,14 +18,6 @@ const quizz = mongoose.Schema({
                 }
             }
         ]
-    }, 
-    lessson_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'lesson'
-    },
-    belongto_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'instructor'
     }
 })
 

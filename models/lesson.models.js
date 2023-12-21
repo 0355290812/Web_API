@@ -9,10 +9,13 @@ const lesson = new mongoose.Schema({
         type: String,
         required: true
     },
-    belongto_id: {
+    lessonType: {
+        type: String,
+        enum: ["quizz", "video"]
+    },
+    content: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
-        required: true
+        refPath: 'lessonType'
     }
 })
 

@@ -2,27 +2,37 @@ const Instructor = require('../models/instructor.models')
 const User = require('../models/user.models')
 
 const getAllInstructor = async (req, res) => {
-    // const page_size = req.query.page_size || 20 
-    // const page = req.query.page || 1
-    // const search = req.query.search || ""
-    // const sort = req.query.sort || "DSC" == "ASC" ? 1 : -1
-    // const value_sort = req.query.value-sort || "avg_rating"
-    // const status = req.query.status || "offline"
+    const page_size = req.query.page_size || 20 
+    const page = req.query.page || 1
+    const search = req.query.search || ""
+    const sort = req.query.sort || "DSC" == "ASC" ? 1 : -1
+    const value_sort = req.query.value-sort || "avg_rating"
+    const status = req.query.status || "online"
+    const users = await User.find({
+        role: "instructor",
+        name: {
+            $regex: search, $options: 'i'
+        }
+    }, {
+        select: '_id'
+    })
+    console.log(users);
     try {
         const instructor = await Instructor.find({
-            // title: {
-            //     $regex: new RegExp(search, "i")
-            // },
-            // active_status: status
+            active_status: status,
+            user: {
+                $in: users
+            }
         })
-        // .sort({ [value_sort]: sort })
-        // .skip((page - 1) * page_size)
-        // .limit(page_size)
-    
+        .sort({ [value_sort]: sort })
+        .skip((page - 1) * page_size)
+        .limit(page_size)
+        .populate('user')
+
         res.status(200).json({
             status: "success",
             data: instructor,
-            message: 'Get all courses'    
+            message: 'Get all instructors'    
         })
        
     } catch (error) {
@@ -32,17 +42,12 @@ const getAllInstructor = async (req, res) => {
 }
 
 const getInstructorByID = async (req, res) => {
-    const instructor_id = req.params.id
 
     try {
-        const instructor = await Instructor.findById(id)
-        const user = await User.findById(instructor.user_id)
+        const instructor = await Instructor.findOne({_id: req.params.id}).populate('user')
         res.status(200).json({
             status: "success",
-            data: {
-                name: user.name,
-
-            },
+            data: instructor,
             message: "Get Success"
         })
     } catch (error) {
@@ -51,24 +56,19 @@ const getInstructorByID = async (req, res) => {
 }
 
 const createInstructor = async (req, res) => {
-    const checkInstructor = await Instructor.findOne({ user_id: req.user.id })
 
-    if (checkInstructor && checkInstructor.status == "pending") {
-        res.status(401).json({
-            status: "waiting",
-            data: [],
-            message: "Awaiting approval"
-        })
-        return
-    }
-    
-    const instructor = await Instructor.create({
-        sector: req.body.sector,
+    const instructor = await Instructor.findOneAndUpdate({
+        user: req.user.id
+    },{
+        subjects: req.body.subjects,
         certificates: req.body.certificates,
         academic_level: req.body.academic_level,
-        user_id: req.user.id,
-        image: req.body.image
-    })
+        user: req.user.id,
+        image: req.body.image,
+        status: "pending",
+        active_status: "offline"
+    }, { upsert: true, new: true })
+
     if (!instructor) {
         res.status(500).json({
             status: "failed",
@@ -77,15 +77,40 @@ const createInstructor = async (req, res) => {
         })
         return
     }
+
     res.status(200).json({
         status: "success",
         data: instructor,
-        message: "Create Successfully" 
+        message: "Awaiting approval" 
     })
 }
 
+const getStatusInstructor = async (req, res) => {
+    const instructor = await Instructor.findOne({
+        user: req.user.id
+    })
+
+    if (!instructor) {
+        res.status(200).json({
+            status: "success",
+            data: {
+                status: "unregister"
+            }
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            status: instructor.status
+        }
+    })
+
+}
+
 const getInfo = async (req, res) => {
-    const instructor = Instructor.findById(req.user.id).populate('user_id')
+    const instructor = await Instructor.findOne({ user: req.user.id }).populate('user')
     res.status(200).json({
         status: "success",
         data: instructor,
@@ -93,17 +118,17 @@ const getInfo = async (req, res) => {
     })
 }
 const updateInfo = async (req, res) => {
-    if (req.body.image) {
-        const instructor = await Instructor.findOneAndUpdate({ user_id: req.user.id },{
-            image: req.body.image
-        })
-    }
-
-    if (req.body.user) {
-        const user = await User.findByIdAndUpdate(req.user.id, {
-            name: req.body.name
-        })
-    }
+    const instructor = await Instructor.findOneAndUpdate({
+        user: req.user.id
+    }, {
+        subjects: req.body.subjects,
+        certificates: req.body.certificates,
+        academic_level: req.body.academic_level,
+        image: req.body.image,
+        description: req.body.description,
+        active_status: req.body.active_status,
+        price: req.body.price
+    }, { new: true }).populate('user')
 
     res.status(200).json({
         status: "Success",
@@ -111,4 +136,4 @@ const updateInfo = async (req, res) => {
         message: "Information has been changed"
     })
 }
-module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo }
+module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor }

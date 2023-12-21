@@ -18,27 +18,32 @@ const protect = async (req, res, next) => {
     const bearer = req.headers.authorization
     
     if (!bearer) {
-        res.status(401)
-        res.send('Not authorized')
+        res.status(401).json({
+            status: "fail",
+            message: "Not authorized"
+        })
         return
     }
 
     const [, token] = bearer.split(' ')
     if (!token) {
-        console.log('here')
-        res.status(401)
-        res.send('Not authorized')
+        res.status(401).json({
+            status: "fail",
+            message: "Not authorized"
+        })
         return
     }
 
     const checkIfBlacklisted = await BlackList.findOne({token})
     if (checkIfBlacklisted) 
-        return res.status(401).json({ message: "This session has expired. Please login" });
+        return res.status(401).json({ 
+            status: "fail",
+            message: "This session has expired. Please login" 
+        });
 
     try {
         payload = jwt.verify(token, process.env.JWT_SECRET)
         req.user = payload
-        console.log(payload)
         next()
         return
     } catch (e) {
@@ -58,18 +63,23 @@ const hashPassword = (password) => {
 }
 
 const verifyRole = async (req, res, next) => {
-    const { role } = await User.findOne({ id: req.user.id })
+    const user = await User.findOne({ _id: req.user.id })
 
-    if (role !== "instructor") {
+    if (!user) {
         res.status(401).json({
-            status: "failed",
-            data: [],
+            status: "fail",
+            message: "Not Authorized"
+        })
+        return
+    }
+    if (user.role !== "instructor") {
+        res.status(401).json({
+            status: "fail",
             message: "Access denied"
         })
         return 
     } 
 
-    req.user.instructor = await Instructor.findOne({ user_id: req.user.id})
     next();
 }
 

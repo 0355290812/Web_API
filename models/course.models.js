@@ -9,26 +9,18 @@ const course = new mongoose.Schema({
         type: String,
         required: true
     },
-    chapter: [
-        {
-            title: {
-                type: String,
-                required: true
-            },
-            lessons: [
-                {
-                    lesson : {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: 'lesson'
-                    }
-                }
-            ]
-        }
-    ],
-    thumbnail: {
+    level: [{
+        type: String,
+        enum: ["Cơ bản", "Thông hiểu", "Vận dụng", "Vận dụng cao"]
+    }],
+    chapters: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'chapter'
+    }],
+    thumbnails: [{
         type: String,
         required: true
-    },
+    }],
     cover_image: {
         type: String,
         required: true
@@ -42,12 +34,11 @@ const course = new mongoose.Schema({
     //     type: Boolean,
     //     default: false
     // },
-    review: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'course_review'
-    }],
-    category: [String],
-    review: [{
+    subject: {
+        type: String,
+        required: true
+    },
+    reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'review'
     }],
@@ -58,6 +49,10 @@ const course = new mongoose.Schema({
     price: {
         type: Number,
         default: 0,
+    },
+    number_of_registration: {
+        type: Number,
+        default: 0 
     },
     status: {
         type: String,
