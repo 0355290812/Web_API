@@ -49,7 +49,7 @@ const getCourseById = async (req, res) => {
 }
 
 const getCourseByInstructor = async (req, res) => {
-    const courses = await Course.find({ instructor: req.user.id })
+    const courses = await Course.find({ instructor: req.user.id }).populate({ path: 'instructor'})
 
     res.status(200).json({
         status: "success",
@@ -59,7 +59,7 @@ const getCourseByInstructor = async (req, res) => {
 }
 
 const getDetailCourseByInstructor = async (req, res) => {
-    const course = await Course.findOne({ instructor: req.user.id, _id: req.params.id }).populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } } })
+    const course = await Course.findOne({ instructor: req.user.id, _id: req.params.id }).populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } }}).populate('instructor')
 
     res.status(200).json({
         status: "success",
