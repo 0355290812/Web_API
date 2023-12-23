@@ -1,4 +1,6 @@
 const express = require('express')
+const multer = require('multer');
+
 const { getInfo, updateInfo } = require('../controllers/instructor.controllers')
 const { getCourseByInstructor, getDetailCourseByInstructor, createCourse, updateCourseByInstructor, deleteCourse } = require('../controllers/course.controllers')
 const { createLesson, getLesson, deleteLesson, updateLesson } = require('../controllers/lesson.controllers')
@@ -7,10 +9,20 @@ const { getQuizz, createQuizz, updateQuizz, deleteQuizz } = require('../controll
 const { getVideo, createVideo, updateVideo, deleteVideo } = require('../controllers/video.controllers')
 const router = express.Router()
 
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, './uploads/');
+    },
+    filename: function(req, file, cb) {
+      cb(null, new Date().toISOString() + file.originalname);
+    }
+  });
+  
+const upload = multer({ storage: storage });
 
 router.get('/course', getCourseByInstructor) 
 router.get('/course/:id', getDetailCourseByInstructor)
-router.post('/course', createCourse)
+router.post('/course', upload.fields([{ name: 'cover_image', maxCount: 1 }, { name: 'thumbnails', maxCount: 10 }]) ,createCourse)
 router.put('/course/:id', updateCourseByInstructor)
 router.delete('/course/:id', deleteCourse)
 

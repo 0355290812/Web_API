@@ -49,13 +49,14 @@ const getCourseById = async (req, res) => {
 }
 
 const getCourseByInstructor = async (req, res) => {
-    const courses = await Course.find({ instructor: req.user.id }).populate({ path: 'instructor'})
+    const sort = -1;
+    const courses = await Course.find({ instructor: req.user.id }).sort({ createdAt: sort }).populate({ path: 'instructor'});
 
     res.status(200).json({
         status: "success",
         data: courses,
         message: "Get All Success"
-    })
+    });
 }
 
 const getDetailCourseByInstructor = async (req, res) => {
@@ -73,8 +74,8 @@ const createCourse = async (req, res) => {
         title: req.body.title,
         description: req.body.description,
         chapters: req.body.chapters,
-        thumbnails: req.body.thumbnails,
-        cover_image: req.body.cover_image,
+        thumbnails: req.files.thumbnails.map(file => file.path),
+        cover_image: req.files.cover_image[0].path,
         instructor: req.user.id,
         review: [],
         subject: req.body.subject,

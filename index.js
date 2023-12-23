@@ -9,6 +9,7 @@ const guestRoute = require('./routes/guest.routes')
 const app = express()
 const schedule = require('node-schedule')
 const Rent = require('./models/rent.models')
+app.use('/uploads', express.static('uploads'));
 
 dotenv.config()
 
@@ -16,6 +17,9 @@ db.connect()
 
 app.use(morgan('dev'))
 app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:3000' 
+  }));
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
