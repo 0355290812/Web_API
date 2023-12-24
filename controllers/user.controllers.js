@@ -34,15 +34,17 @@ const createNewUser = async (req, res) => {
         email: req.body.email
     })
 
-    if (user) {
-        res.status(200).json({
-            status: "success",
-            data: {user},
-            message: "Welcome to the Website!"
-        })
-    }
-
     const bookmarked = await Bookmarked.create({ user: user.id })
+    
+    const token = createJWT(user)
+    res.status(200).json({
+        status: "success",
+        data: {
+            token: token,
+            username: user.username,
+            role: user.role
+        }
+    })
     
 }
 
