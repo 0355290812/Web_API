@@ -6,11 +6,12 @@ const user_course = mongoose.Schema({
         ref: 'user',
         required: true
     },
-    course: {
+    courses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'course',
-        required: true
-    }
+        required: true,
+        default: []
+    }]
 }, { timestamp: true })
 
 module.exports = mongoose.model('user_course', user_course)

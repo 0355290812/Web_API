@@ -5,8 +5,8 @@ const { getAllCourse, getCourseById, buyCourse, checkRegistered } = require('../
 const { getCoursesBookmarked, addCourseBookmarked, deleteCourseBookmarked } = require('../controllers/bookmarked.controllers')
 const { getCoursesWatching } = require('../controllers/user_course.controllers')
 
-router.get('/instructor', getAllInstructor)
-router.get('/instructor/:id', getInstructorByID)
+// router.get('/instructor', getAllInstructor)
+// router.get('/instructor/:id', getInstructorByID)
 router.post('/register-instructor', createInstructor)
 router.get('/status-instructor', getStatusInstructor)
 

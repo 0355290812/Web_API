@@ -2,6 +2,7 @@ const User = require('../models/user.models')
 const BlackList = require('../models/blackList.models')
 const { createJWT, hashPassword, comparePassword } = require('../utils/auth.utils')
 const Bookmarked = require('../models/bookmarked.models')
+const User_Course = require('../models/user_course.models')
 const jwt = require('jsonwebtoken')
 
 const createNewUser = async (req, res) => {
@@ -35,6 +36,8 @@ const createNewUser = async (req, res) => {
     })
 
     const bookmarked = await Bookmarked.create({ user: user.id })
+    const user_course = await User_Course.create({ user: user.id })
+    const user_instructor = await User_Instructor.create({ user: user.id })
     
     const token = createJWT(user)
     res.status(200).json({
@@ -45,7 +48,6 @@ const createNewUser = async (req, res) => {
             role: user.role
         }
     })
-    
 }
 
 const signin = async(req, res) => {
@@ -67,7 +69,11 @@ const signin = async(req, res) => {
     const token = createJWT(user)
     res.status(200).json({
         status: "success",
-        data: {token},
+        data: {
+            token: token,
+            username: user.username,
+            role: user.role
+        },
         message: "Login Success"
     })
 }

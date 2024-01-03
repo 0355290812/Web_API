@@ -9,10 +9,10 @@ const course = new mongoose.Schema({
         type: String,
         required: true
     },
-    level: [{
+    level: {
         type: String,
         enum: ["Cơ bản", "Thông hiểu", "Vận dụng", "Vận dụng cao"]
-    }],
+    },
     chapters: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'chapter'
@@ -38,10 +38,10 @@ const course = new mongoose.Schema({
         type: String,
         required: true
     },
-    reviews: [{
+    reviews: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'review'
-    }],
+        default: [],
+    },
     avg_rating: {
         type: Number,
         default: null
@@ -50,7 +50,7 @@ const course = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    number_of_registration: {
+    num_registration: {
         type: Number,
         default: 0 
     },

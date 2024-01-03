@@ -8,14 +8,16 @@ const quizz = mongoose.Schema({
                     type: String,
                     required: true
                 },
-                answers: {
-                    type: [String],
-                    required: true
-                },
-                correct_answer: {
-                    type: String,
-                    required: true
-                }
+                answers: [{
+                    text: {
+                        type: String,
+                        required: true
+                    },
+                    isCorrect: {
+                        type: Boolean,
+                        required: true
+                    }
+                }]
             }
         ]
     }

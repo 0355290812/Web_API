@@ -7,7 +7,7 @@ const getAllCourse = async (req, res) => {
     const page = req.query.page || 1
     const search = req.query.search || ""
     const sort = req.query.sort || "DSC" == "ASC" ? 1 : -1
-    const value_sort = req.query.value - sort || "avg_rating"
+    const value_sort = req.query.value_sort || "num_registration"
 
     const courses = await Course.find({
         title: {
@@ -20,6 +20,15 @@ const getAllCourse = async (req, res) => {
         .limit(page_size)
         .populate({ path: 'instructor' })
 
+    if (!courses) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Get all courses failed"
+        })
+        return
+    }
+
     res.status(200).json({
         status: "success",
         data: courses,
@@ -28,7 +37,7 @@ const getAllCourse = async (req, res) => {
 }
 
 const getCourseById = async (req, res) => {
-    const course = await Course.findOne({ _id: req.params.id })
+    const course = await Course.findOne({ _id: req.params.id, status: "approve" })
         .populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } } })
         .populate({ path: 'instructor' })
 
@@ -40,17 +49,47 @@ const getCourseById = async (req, res) => {
         })
         return
     }
-
-    res.status(200).json({
-        status: "success",
-        data: course,
-        message: `Get course ${course.title}`
-    })
+    let isBookmarked = false
+    let isRegistered = false
+    try {
+        if (req.user) {
+            const user_course = await User_Course.findOne({ user: req.user.id })
+            if (user_course.courses.includes(req.params.id)) {
+                isRegistered = true
+            } else {
+                isRegistered = false
+            }
+    
+            const bookmarked = await Bookmarked.findOne({ user: req.user.id })
+            if (bookmarked.list_bookmarked.includes(req.params.id)) {
+                isBookmarked = true
+            } else {
+                isBookmarked = false
+            }
+        } else {
+            isRegistered = false
+            isBookmarked = false
+        }
+    
+    
+        res.status(200).json({
+            status: "success",
+            data: { 
+                ...course._doc,
+                isBookmarked,
+                isRegistered
+            },
+            message: `Get course ${course.title}`
+        })
+    } catch (error) {
+        console.log(error);
+    }
+    
 }
 
 const getCourseByInstructor = async (req, res) => {
     const sort = -1;
-    const courses = await Course.find({ instructor: req.user.id }).sort({ createdAt: sort }).populate({ path: 'instructor'});
+    const courses = await Course.find({ instructor: req.user.id }).sort({ createdAt: sort }).populate({ path: 'instructor' });
 
     res.status(200).json({
         status: "success",
@@ -60,7 +99,7 @@ const getCourseByInstructor = async (req, res) => {
 }
 
 const getDetailCourseByInstructor = async (req, res) => {
-    const course = await Course.findOne({ instructor: req.user.id, _id: req.params.id }).populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } }}).populate('instructor')
+    const course = await Course.findOne({ instructor: req.user.id, _id: req.params.id }).populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } } }).populate('instructor')
 
     res.status(200).json({
         status: "success",
@@ -181,7 +220,7 @@ const deleteCourse = async (req, res) => {
             })
             return
         }
-        
+
         res.status(200).json({
             status: "success",
             data: course,

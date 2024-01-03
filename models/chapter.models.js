@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 
 const chapter = mongoose.Schema({
     title: {
-        type: String
+        type: String,
+        required: true
     },
     lessons: [{
         type: mongoose.Schema.Types.ObjectId,

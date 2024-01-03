@@ -23,22 +23,6 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
-// const job = schedule.scheduleJob('* * * * * *', async () => {
-//     try {
-//         const rents = await Rent.find({ status: 'waiting' })
-
-//         if (rents) {
-//             for (i of rents) {
-//                 if (new Date() - i.createdAt > 1 * 60 * 1000) {
-//                     await Rent.findOneAndDelete({ _id: i.id })
-//                 }
-//             }
-//         }
-//     } catch (error) {
-//         console.log(error);
-//     }
-
-// })
 app.use('/api', router)
 app.use('/auth', authRouter)
 app.use('/', guestRoute)

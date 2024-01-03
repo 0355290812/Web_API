@@ -4,10 +4,6 @@ const instructor = mongoose.Schema({
     description: {
         type: String
     },
-    image: {
-        type: String,
-        required: true
-    },
     subjects: [{
         type: String,
         required: true
@@ -35,8 +31,8 @@ const instructor = mongoose.Schema({
         default: 0
     },
     reviews: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'review'
+        type: mongoose.Schema.Types.ObjectId,   
+        default: [],
     }],
     avg_rating: {
         type: Number,
@@ -46,7 +42,11 @@ const instructor = mongoose.Schema({
         type: Number,
         default: 0
     },
-    number_of_registration: {
+    num_registration: {
+        type: Number,
+        default: 0
+    },
+    num_course: {
         type: Number,
         default: 0
     },
