@@ -31,8 +31,8 @@ const instructor = mongoose.Schema({
         default: 0
     },
     reviews: [{
-        type: mongoose.Schema.Types.ObjectId,   
-        default: [],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'review'
     }],
     avg_rating: {
         type: Number,
@@ -64,6 +64,6 @@ const instructor = mongoose.Schema({
         enum: ["online", "offline"],
         default: "offline"
     }
-})
+}, { timestamps: true })
 
 module.exports = mongoose.model('instructor', instructor)

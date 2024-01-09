@@ -1,12 +1,14 @@
 const Instructor = require('../models/instructor.models')
 const User = require('../models/user.models')
+const review = require('../models/review.models')
+const User_Instructor = require('../models/user_instructor.models')
 
 const getAllInstructor = async (req, res) => {
     const page_size = req.query.page_size || 20
     const page = req.query.page || 1
     const search = req.query.search || ""
-    const sort = req.query.sort || "DSC" == "ASC" ? 1 : -1
-    const value_sort = req.query.value - sort || "avg_rating"
+    const sort = (req.query.sort || "DSC") == "ASC" ? 1 : -1
+    const value_sort = req.query.value_sort || "num_registration"
     const status = req.query.status
     const users = await User.find({
         role: "instructor",
@@ -28,6 +30,7 @@ const getAllInstructor = async (req, res) => {
                 .skip((page - 1) * page_size)
                 .limit(page_size)
                 .populate('user')
+
             res.status(200).json({
                 status: "success",
                 data: instructor,
@@ -60,7 +63,7 @@ const getAllInstructor = async (req, res) => {
 const getInstructorByID = async (req, res) => {
 
     try {
-        const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user')
+        const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user').populate({ path:'reviews', populate: {path: 'user'}})
 
         let isFollowed = false
         if (req.user) {
@@ -165,4 +168,41 @@ const updateInfo = async (req, res) => {
         message: "Information has been changed"
     })
 }
-module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor }
+
+const updateFollowInstructor = async (req, res) => {
+
+    const user_instructor = await User_Instructor.findOne({ user: req.user.id })
+    const instructor = await Instructor.findOne({ _id: req.params.id })
+
+    if (req.user.id == instructor.user) {
+        res.status(500).json({
+            status: "failed",
+            message: "You can't follow yourself"
+        })
+        return
+    }
+    if (!user_instructor) {
+        res.status(500).json({
+            status: "failed",
+            message: "User not found"
+        })
+        return
+    }
+    if (user_instructor.instructors.includes(req.params.id)) {
+        user_instructor.instructors.splice(user_instructor.instructors.indexOf(req.params.id), 1)
+        instructor.following -= 1
+    } else {
+        user_instructor.instructors.push(req.params.id)
+        instructor.following += 1
+    }
+
+    await user_instructor.save()
+    await instructor.save()
+
+    res.status(200).json({
+        status: "success",
+        data: user_instructor,
+        message: "Update success"
+    })
+}
+module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor }

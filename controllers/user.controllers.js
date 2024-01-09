@@ -3,6 +3,7 @@ const BlackList = require('../models/blackList.models')
 const { createJWT, hashPassword, comparePassword } = require('../utils/auth.utils')
 const Bookmarked = require('../models/bookmarked.models')
 const User_Course = require('../models/user_course.models')
+const User_Instructor = require('../models/user_instructor.models')
 const jwt = require('jsonwebtoken')
 
 const createNewUser = async (req, res) => {
@@ -10,7 +11,7 @@ const createNewUser = async (req, res) => {
 
     const usernameExist = await User.findOne({username: req.body.username})
     if (usernameExist) {
-        res.status(401).json({
+        res.status(500).json({
             status: "failed",
             data: [],
             message: "Username already exist"
@@ -20,7 +21,7 @@ const createNewUser = async (req, res) => {
 
     const emailExist = await User.findOne({email: req.body.email})
     if (emailExist) {
-        res.status(401).json({
+        res.status(500).json({
             status: "failed",
             data: [],
             message: "Email already exist"
@@ -58,7 +59,7 @@ const signin = async(req, res) => {
     const isValid = await comparePassword(req.body.password, user.password)
 
     if (!isValid) {
-        res.status(401).json({
+        res.status(500).json({
             status: "failed",
             data: [],
             message: "Invalid username or password"
@@ -67,7 +68,7 @@ const signin = async(req, res) => {
     }
 
     const token = createJWT(user)
-    res.status(200).json({
+    res.status(201).json({
         status: "success",
         data: {
             token: token,
@@ -100,7 +101,7 @@ const logout = async(req, res) => {
     }
 
     const newBlacklist = await BlackList.create({token})
-    res.status(200).json({
+    res.status(201).json({
         status: "success",
         data: [],
         message: 'You are logged on'

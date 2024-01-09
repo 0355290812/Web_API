@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const user_instructor = mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,

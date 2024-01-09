@@ -48,8 +48,10 @@ const protect = async (req, res, next) => {
         return
     } catch (e) {
         console.log(e)
-        res.status(401)
-        res.send('Not valid token')
+        res.status(401).json({
+            status: "fail",
+            message: "Not valid token"
+        })
         return 
     }
 }

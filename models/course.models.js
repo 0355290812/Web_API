@@ -38,10 +38,10 @@ const course = new mongoose.Schema({
         type: String,
         required: true
     },
-    reviews: {
+    reviews: [{
         type: mongoose.Schema.Types.ObjectId,
-        default: [],
-    },
+        ref: 'review'
+    }],
     avg_rating: {
         type: Number,
         default: null

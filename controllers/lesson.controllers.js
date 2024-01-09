@@ -5,7 +5,7 @@ const createLesson = async (req, res) => {
         title: req.body.title,
         description: req.body.description,
         lessonType: req.body.lessonType,
-        content: req.body.content
+        // content: req.body.content
     })
 
     if (!lesson) {
