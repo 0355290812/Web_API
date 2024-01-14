@@ -108,5 +108,48 @@ const logout = async(req, res) => {
     })
 }
 
+const changePassword = async (req, res) => {
+    const user = await User.findOne({ _id: req.user.id })
 
-module.exports = { createNewUser, signin, logout }
+    const isValid = await comparePassword(req.body.old_password, user.password)
+    if (!isValid) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Wrong password"
+        })
+        return
+    }
+
+    const hash = await hashPassword(req.body.new_password)
+
+    user.password = hash
+    await user.save()
+
+    res.status(200).json({
+        status: "success",
+        data: [],
+        message: "Change password successfully"
+    })
+}
+
+const getInfo = async(req, res) => {
+    const user = await User.findOne({ _id: req.user.id })
+
+    if (!user) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Get user failed"
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: user,
+        message: "Success"
+    })
+}
+
+module.exports = { createNewUser, signin, logout, changePassword, getInfo }

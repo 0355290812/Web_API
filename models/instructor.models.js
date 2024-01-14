@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 
 const instructor = mongoose.Schema({
     description: {
-        type: String
+        type: String,
+        default: ''
     },
     subjects: [{
         type: String,

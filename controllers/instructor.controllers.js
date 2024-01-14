@@ -96,7 +96,7 @@ const createInstructor = async (req, res) => {
         certificates: req.body.certificates,
         academic_level: req.body.academic_level,
         user: req.user.id,
-        image: req.body.image,
+        // image: req.body.image,
         status: "pending",
         active_status: "offline"
     }, { upsert: true, new: true })
@@ -190,10 +190,10 @@ const updateFollowInstructor = async (req, res) => {
     }
     if (user_instructor.instructors.includes(req.params.id)) {
         user_instructor.instructors.splice(user_instructor.instructors.indexOf(req.params.id), 1)
-        instructor.following -= 1
+        instructor.follower -= 1
     } else {
         user_instructor.instructors.push(req.params.id)
-        instructor.following += 1
+        instructor.follower += 1
     }
 
     await user_instructor.save()
@@ -205,4 +205,38 @@ const updateFollowInstructor = async (req, res) => {
         message: "Update success"
     })
 }
-module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor }
+
+const getFollowingInstructor = async (req, res) => {
+    const user_instructor = await User_Instructor.findOne({ user: req.user.id }).populate({ path: 'instructors', populate: { path: 'user' } })
+
+    if (!user_instructor) {
+        res.status(500).json({
+            status: "failed",
+            message: "User not found"
+        })
+        return
+    }
+
+    if (req.query.status == "online" || req.query.status == "offline") {
+        const instructors = await Instructor.find({
+            _id: {
+                $in: user_instructor.instructors
+            },
+            active_status: req.query.status
+        }).populate('user')
+
+        res.status(200).json({
+            status: "success",
+            data: instructors,
+            message: "Get success"
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: user_instructor.instructors,
+        message: "Get success"
+    })
+}
+module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor, getFollowingInstructor }

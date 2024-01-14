@@ -1,4 +1,5 @@
 const Bookmarked = require('../models/bookmarked.models')
+const Course = require('../models/course.models')
 
 const getCoursesBookmarked = async (req, res) => {
     try {
@@ -8,7 +9,7 @@ const getCoursesBookmarked = async (req, res) => {
         .populate({ path: 'list_bookmarked', populate: { path: 'instructor' } })
         res.status(200).json({
             status: "success",
-            data: list_bookmarked,
+            data: list_bookmarked.list_bookmarked,
             message: "All course bookmarked"
         })
     } catch (error) {
@@ -32,19 +33,22 @@ const updateCourseBookmarked = async (req, res) => {
         })
         return
     }
-    
+
+    let message = ''
     const course = req.params.id
     if (!list_bookmarked.list_bookmarked.includes(course)){
         list_bookmarked.list_bookmarked.push(course)
+        message = 'Add more success'
     } else {
         list_bookmarked.list_bookmarked.splice(list_bookmarked.list_bookmarked.indexOf(course), 1)
+        message = 'Remove success'
     }
     await list_bookmarked.save();
     
     res.status(200).json({
         status: "success",
         data: list_bookmarked,
-        message: "Add more success"
+        message: message
     })
 }
 
