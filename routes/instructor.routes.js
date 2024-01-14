@@ -6,7 +6,8 @@ const { getCourseByInstructor, getDetailCourseByInstructor, createCourse, update
 const { createLesson, getLesson, deleteLesson, updateLesson } = require('../controllers/lesson.controllers')
 const { createChapter, getChapter, deleteChapter, updateChapter } = require('../controllers/chapter.controllers')
 const { getQuizz, createQuizz, updateQuizz, deleteQuizz } = require('../controllers/quizz.controllers')
-const { getVideo, createVideo, updateVideo, deleteVideo } = require('../controllers/video.controllers')
+const { getVideo, createVideo, updateVideo, deleteVideo } = require('../controllers/video.controllers');
+const { submitRent, deleteRent, getRents } = require('../controllers/rent.controllers');
 const router = express.Router()
 
 const storage = multer.diskStorage({
@@ -49,6 +50,10 @@ router.delete('/video/:id', deleteVideo)
 
 router.get('/info', getInfo)
 router.put('/info', updateInfo)
+
+router.get('/rent', getRents)
+router.put('/rent/:id', submitRent)
+router.delete('rent/:id', deleteRent)
 
 router.get('/', (req, res) => {res.send("Hello Instructor")})
 

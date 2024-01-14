@@ -7,10 +7,26 @@ const rent = mongoose.Schema({
     },
     instructor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'instructor'
     },
     time: {
         type: Number,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    timeStart: {
+        type: Date,
+        required: true
+    },
+    subject: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
         required: true
     },
     roomId: {

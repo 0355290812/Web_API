@@ -1,10 +1,25 @@
 const express = require('express')
 const router = express.Router()
+const multer = require('multer');
+const moment = require('moment');
 const { getStatusInstructor, getAllInstructor, getInstructorByID, createInstructor, updateFollowInstructor, getFollowingInstructor } = require('../controllers/instructor.controllers')
 const { getAllCourse, getCourseById, buyCourse, checkRegistered } = require('../controllers/course.controllers')
 const { getCoursesBookmarked, updateCourseBookmarked } = require('../controllers/bookmarked.controllers')
 const { getCoursesWatching } = require('../controllers/user_course.controllers')
-const { changePassword, getInfo } = require('../controllers/user.controllers')
+const { changePassword, getInfo, updateInfo } = require('../controllers/user.controllers');
+const { transactionHistory, recharge } = require('../controllers/payment.controllers');
+const { rentInstructor } = require('../controllers/rent.controllers');
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      cb(null, './uploads/');
+    },
+    filename: function(req, file, cb) {
+      cb(null, new Date().toISOString() + file.originalname);
+    }
+  });
+  
+const upload = multer({ storage: storage });
 
 router.get('/course/bookmarked', getCoursesBookmarked)
 router.put('/course/:id/bookmarked', updateCourseBookmarked)
@@ -26,5 +41,12 @@ router.get('/status-instructor', getStatusInstructor)
 router.put('/change-password', changePassword)
 
 router.get('/info', getInfo)
+router.put('/info', upload.fields([{ name: 'image', maxCount: 1 }]), updateInfo)
+
+router.get('/transaction-history', transactionHistory)
+
+router.post('/recharge', recharge )
+
+router.post('/instructor/:id/rent', rentInstructor)
 
 module.exports = router

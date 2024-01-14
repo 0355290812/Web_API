@@ -152,4 +152,31 @@ const getInfo = async(req, res) => {
     })
 }
 
-module.exports = { createNewUser, signin, logout, changePassword, getInfo }
+const updateInfo = async (req, res) => {
+
+    const user = await User.findOne({ _id: req.user.id })
+
+    if (req.body.email != user.email) {
+        const emailExist = await User.findOne({email: req.body.email})
+        if (emailExist) {
+            res.status(500).json({
+                status: "failed",
+                data: [],
+                message: "Email already exist"
+            })
+            return
+        }
+        user.image = req.files.image[0].path
+        user.email = req.body.email
+        await user.save()
+    } else {
+        user.image = req.files.image[0].path
+        await user.save()
+    }
+    res.status(200).json({
+        status: "success",
+        data: user,
+        message: "Update user successfully"
+    })
+}
+module.exports = { createNewUser, signin, logout, changePassword, getInfo, updateInfo }
