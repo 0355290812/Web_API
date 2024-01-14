@@ -37,7 +37,7 @@ const submitRent = async (req, res) => {
     const instructor = await Instructor.findOne({ user: req.user.id })
     const userInstructor = await User.findOne({ _id: instructor.user })
     const rent = await Rent.findOneAndUpdate({
-        user: req.user.id,
+        instructor: instructor.id,
         _id: req.params.id
     }, {
         status: "approve",
@@ -74,7 +74,7 @@ const getRents = async (req, res) => {
     const status = req.params.status
     const rents = await Rent.find({
         instructor: instructor.id,
-        status: status
+        status: status == "approve" ? "approve" : "waiting"
     }).populate({path: "user"})
 
     res.status(200).json({

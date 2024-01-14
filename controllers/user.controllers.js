@@ -46,7 +46,8 @@ const createNewUser = async (req, res) => {
         data: {
             token: token,
             username: user.username,
-            role: user.role
+            role: user.role,
+            user_id: user.id
         }
     })
 }
@@ -73,7 +74,8 @@ const signin = async(req, res) => {
         data: {
             token: token,
             username: user.username,
-            role: user.role
+            role: user.role,
+            user_id: user.id
         },
         message: "Login Success"
     })
