@@ -7,7 +7,7 @@ const { getAllCourse, getCourseById, buyCourse, checkRegistered } = require('../
 const { getCoursesBookmarked, updateCourseBookmarked } = require('../controllers/bookmarked.controllers')
 const { getCoursesWatching } = require('../controllers/user_course.controllers')
 const { changePassword, getInfo, updateInfo } = require('../controllers/user.controllers');
-const { transactionHistory, recharge } = require('../controllers/payment.controllers');
+const { transactionHistory, recharge, vnpayReturn } = require('../controllers/payment.controllers');
 const { rentInstructor } = require('../controllers/rent.controllers');
 
 const storage = multer.diskStorage({
@@ -46,6 +46,7 @@ router.put('/info', upload.fields([{ name: 'image', maxCount: 1 }]), updateInfo)
 router.get('/transaction-history', transactionHistory)
 
 router.post('/recharge', recharge )
+router.get('vnpay_return', vnpayReturn)
 
 router.post('/instructor/:id/rent', rentInstructor)
 

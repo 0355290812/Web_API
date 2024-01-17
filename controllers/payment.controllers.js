@@ -1,4 +1,5 @@
 const Payment = require('../models/payment.models');
+const moment = require('moment');
 
 const transactionHistory = async (req, res) => {
     const payment = await Payment.find({ user: req.user.id })
@@ -24,7 +25,7 @@ const recharge = (req, res, next) => {
     let tmnCode = "ALF66QDD";
     let secretKey = "LAICLDVUTVTUJLREPJZSOUJOCUWFWIIY";
     let vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    let returnUrl = "http://localhost:3001";
+    let returnUrl = "http://localhost:3000/user/payment";
     let orderId = moment(date).format('DDHHmmss');
     let amount = req.body.amount;
     let bankCode = req.body.bankCode;
@@ -61,9 +62,48 @@ const recharge = (req, res, next) => {
     vnp_Params['vnp_SecureHash'] = signed;
     vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
 
-    console.log(vnpUrl);
-    res.redirect(vnpUrl)
+    res.status(200).json({
+        vnpUrl
+    })
 };
+
+const vnpayReturn = async (req, res, next) => {
+    var vnp_Params = req.query;
+
+    var secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    let tmnCode = "ALF66QDD";
+    let secretKey = "LAICLDVUTVTUJLREPJZSOUJOCUWFWIIY";
+
+    var querystring = require('qs');
+    var signData = querystring.stringify(vnp_Params, { encode: false });
+    var crypto = require("crypto");     
+    var hmac = crypto.createHmac("sha512", secretKey);
+    var signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");     
+
+    if(secureHash === signed){
+        const payment = await Payment.create({
+            user: req.user.id,
+            cost: vnp_Params['vnp_Amount'] / 100,
+            status: 'recharge',
+            message: `Nạp ${vnp_Params['vnp_Amount'] / 100} vào tài khoản`
+        })
+        res.status(200).json({
+            status: "success",
+            data: payment
+        })
+    } else{
+        res.status(200).json({
+            status: "fail",
+            message: "Invalid signature"
+        })
+    }
+}
 
 function sortObject(obj) {
     let sorted = {};
@@ -81,4 +121,4 @@ function sortObject(obj) {
     return sorted;
 }
 
-module.exports = { transactionHistory, recharge }
+module.exports = { transactionHistory, recharge, vnpayReturn }
