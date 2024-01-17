@@ -158,7 +158,7 @@ const updateInfo = async (req, res) => {
 
     const user = await User.findOne({ _id: req.user.id })
 
-    if (req.files) {
+    if (req.files && req.files.image) {
         if (req.body.email != user.email) {
             const emailExist = await User.findOne({ email: req.body.email })
             if (emailExist) {

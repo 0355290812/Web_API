@@ -46,7 +46,7 @@ router.put('/info', upload.fields([{ name: 'image', maxCount: 1 }]), updateInfo)
 router.get('/transaction-history', transactionHistory)
 
 router.post('/recharge', recharge )
-router.get('vnpay_return', vnpayReturn)
+router.get('/vnpay_return', vnpayReturn)
 
 router.post('/instructor/:id/rent', rentInstructor)
 
