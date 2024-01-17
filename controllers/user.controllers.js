@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken')
 const createNewUser = async (req, res) => {
     const hash = await hashPassword(req.body.password)
 
-    const usernameExist = await User.findOne({username: req.body.username})
+    const usernameExist = await User.findOne({ username: req.body.username })
     if (usernameExist) {
         res.status(500).json({
             status: "failed",
@@ -19,7 +19,7 @@ const createNewUser = async (req, res) => {
         return
     }
 
-    const emailExist = await User.findOne({email: req.body.email})
+    const emailExist = await User.findOne({ email: req.body.email })
     if (emailExist) {
         res.status(500).json({
             status: "failed",
@@ -39,7 +39,7 @@ const createNewUser = async (req, res) => {
     const bookmarked = await Bookmarked.create({ user: user.id })
     const user_course = await User_Course.create({ user: user.id })
     const user_instructor = await User_Instructor.create({ user: user.id })
-    
+
     const token = createJWT(user)
     res.status(200).json({
         status: "success",
@@ -52,11 +52,11 @@ const createNewUser = async (req, res) => {
     })
 }
 
-const signin = async(req, res) => {
+const signin = async (req, res) => {
     const user = await User.findOne({
         username: req.body.username
     })
-    
+
     const isValid = await comparePassword(req.body.password, user.password)
 
     if (!isValid) {
@@ -81,7 +81,7 @@ const signin = async(req, res) => {
     })
 }
 
-const logout = async(req, res) => {
+const logout = async (req, res) => {
     const bearer = req.headers.authorization
     if (!bearer) {
         res.status(401).json({
@@ -92,8 +92,8 @@ const logout = async(req, res) => {
         return
     }
 
-    const [,token] = bearer.split(' ')
-    const checkIfBlacklisted = await BlackList.findOne({token})
+    const [, token] = bearer.split(' ')
+    const checkIfBlacklisted = await BlackList.findOne({ token })
     if (checkIfBlacklisted) {
         res.status(204).json({
             status: "failed",
@@ -102,7 +102,7 @@ const logout = async(req, res) => {
         })
     }
 
-    const newBlacklist = await BlackList.create({token})
+    const newBlacklist = await BlackList.create({ token })
     res.status(201).json({
         status: "success",
         data: [],
@@ -135,7 +135,7 @@ const changePassword = async (req, res) => {
     })
 }
 
-const getInfo = async(req, res) => {
+const getInfo = async (req, res) => {
     const user = await User.findOne({ _id: req.user.id })
 
     if (!user) {
@@ -158,24 +158,44 @@ const updateInfo = async (req, res) => {
 
     const user = await User.findOne({ _id: req.user.id })
 
-    if (req.body.email != user.email) {
-        const emailExist = await User.findOne({email: req.body.email})
-        if (emailExist) {
-            res.status(500).json({
-                status: "failed",
-                data: [],
-                message: "Email already exist"
-            })
-            return
+    if (req.files) {
+        if (req.body.email != user.email) {
+            const emailExist = await User.findOne({ email: req.body.email })
+            if (emailExist) {
+                res.status(500).json({
+                    status: "failed",
+                    data: [],
+                    message: "Email already exist"
+                })
+                return
+            }
+            user.image = req.files.image[0].path
+            user.email = req.body.email
+            user.name = req.body.name
+            await user.save()
+        } else {
+            user.image = req.files.image[0].path
+            user.name = req.body.name
+            await user.save()
         }
-        user.image = req.files.image[0].path
-        user.email = req.body.email
-        user.name = req.body.name
-        await user.save()
     } else {
-        user.image = req.files.image[0].path
-        user.name = req.body.name
-        await user.save()
+        if (req.body.email != user.email) {
+            const emailExist = await User.findOne({ email: req.body.email })
+            if (emailExist) {
+                res.status(500).json({
+                    status: "failed",
+                    data: [],
+                    message: "Email already exist"
+                })
+                return
+            }
+            user.email = req.body.email
+            user.name = req.body.name
+            await user.save()
+        } else {
+            user.name = req.body.name
+            await user.save()
+        }
     }
     res.status(200).json({
         status: "success",
