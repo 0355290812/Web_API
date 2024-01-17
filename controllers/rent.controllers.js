@@ -1,6 +1,7 @@
 const Rent = require('../models/rent.models')
 const Instructor = require('../models/instructor.models')
 const callVideo = require('../controllers/callVideo.controllers')
+const User = require('../models/user.models')
 
 const rentInstructor = async (req, res) => {
     const user = req.user.id
@@ -31,9 +32,10 @@ const rentInstructor = async (req, res) => {
 
 const submitRent = async (req, res) => {
 
-    callVideo.setRestToken();
+    await callVideo.setRestToken();
     const room = await callVideo.createRoom();
     const { roomId } = room;
+    console.log("roomId", roomId);
     const instructor = await Instructor.findOne({ user: req.user.id })
     const userInstructor = await User.findOne({ _id: instructor.user })
     const rent = await Rent.findOneAndUpdate({

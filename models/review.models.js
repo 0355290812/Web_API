@@ -13,6 +13,19 @@ const review = mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
+    },
+    feedback: {
+        content: {
+            type: String,
+            required: true
+        },
+        instructor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'instructor'
+        },
+        date: {
+            type: Date
+        }
     }
 }, { timestamp: true })
 

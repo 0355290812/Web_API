@@ -170,9 +170,11 @@ const updateInfo = async (req, res) => {
         }
         user.image = req.files.image[0].path
         user.email = req.body.email
+        user.name = req.body.name
         await user.save()
     } else {
         user.image = req.files.image[0].path
+        user.name = req.body.name
         await user.save()
     }
     res.status(200).json({

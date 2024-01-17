@@ -1,6 +1,7 @@
 const PROJECT_ID = "SK.0.6cUpcyyxDRnOw37xsF5nk0UKwnd4oP";
 const PROJECT_SECRET = "bW93OUVWdWxveHY3NVpTVHFCRlpUSThlWWlIbDBLb2o=";
 const BASE_URL = "https://api.stringee.com/v1/room2";
+const axios = require("axios");
 
 class API {
   constructor(projectId, projectSecret) {
@@ -11,6 +12,7 @@ class API {
 
   async createRoom() {
     const roomName = Math.random().toFixed(4);
+    console.log(this._authHeader());
     const response = await axios.post(
       `${BASE_URL}/create`,
       {
@@ -23,7 +25,6 @@ class API {
     );
 
     const room = response.data;
-    console.log({ room });
     return room;
   }
 
@@ -60,7 +61,7 @@ class API {
     const tokens = await this._getToken({ rest: true });
     const restToken = tokens.rest_access_token;
     this.restToken = restToken;
-
+    
     return restToken;
   }
 
@@ -89,7 +90,6 @@ class API {
     );
 
     const tokens = response.data;
-    console.log({ tokens });
     return tokens;
   }
 
