@@ -107,14 +107,15 @@ const getInstructorByID = async (req, res) => {
 
 const createInstructor = async (req, res) => {
 
+    let certificates = req.body.certificates.map((item, index) => { return { name: item, image: req.files.certificates[index].path } })
+    let academic_level = req.body.academic_level.map((item, index) => { return { name: item, image: req.files.academic_level[index].path } })
     const instructor = await Instructor.findOneAndUpdate({
         user: req.user.id
     }, {
         subjects: req.body.subjects,
-        certificates: req.body.certificates,
-        academic_level: req.body.academic_level,
+        certificates: certificates,
+        academic_level: academic_level,
         user: req.user.id,
-        // image: req.body.image,
         status: "pending",
         active_status: "offline"
     }, { upsert: true, new: true })

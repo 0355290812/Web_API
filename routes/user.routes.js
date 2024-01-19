@@ -36,7 +36,7 @@ router.get('/instructor/following', getFollowingInstructor)
 
 router.get('/instructor/:id', getInstructorByID)
 router.get('/instructor', getAllInstructor)
-router.post('/register-instructor', createInstructor)
+router.post('/register-instructor', upload.fields([{ name: 'certificates', maxCount: 10 }, { name: 'academic_level', maxCount: 10 }]), createInstructor)
 router.get('/status-instructor', getStatusInstructor)
 
 router.put('/change-password', changePassword)
