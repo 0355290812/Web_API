@@ -93,6 +93,11 @@ const vnpayReturn = async (req, res, next) => {
             status: 'recharge',
             message: `Nạp ${vnp_Params['vnp_Amount'] / 100} vào tài khoản`
         })
+
+        const user = await User.findOne({ _id: req.user.id })
+        user.balance += vnp_Params['vnp_Amount'] / 100
+        await user.save()
+        
         res.status(200).json({
             status: "success",
             data: payment

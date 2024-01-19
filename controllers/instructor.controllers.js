@@ -22,9 +22,18 @@ const getAllInstructor = async (req, res) => {
         if (status == "online" || status == "offline") {
             const instructor = await Instructor.find({
                 active_status: status,
-                user: {
-                    $in: users
-                }
+                $or: [
+                    {
+                        user: {
+                            $in: users
+                        }
+                    },
+                    {
+                        subjects: {
+                            $regex: search, $options: 'i'
+                        }
+                    }
+                ]
             })
                 .sort({ [value_sort]: sort })
                 .skip((page - 1) * page_size)
@@ -38,9 +47,18 @@ const getAllInstructor = async (req, res) => {
             })
         } else {
             const instructor = await Instructor.find({
-                user: {
-                    $in: users
-                }
+                $or: [
+                    {
+                        user: {
+                            $in: users
+                        }
+                    },
+                    {
+                        subjects: {
+                            $regex: search, $options: 'i'
+                        }
+                    }
+                ]
             })
                 .sort({ [value_sort]: sort })
                 .skip((page - 1) * page_size)
@@ -63,12 +81,12 @@ const getAllInstructor = async (req, res) => {
 const getInstructorByID = async (req, res) => {
 
     try {
-        const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user').populate({ path:'reviews', populate: {path: 'user'}})
+        const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user').populate({ path: 'reviews', populate: { path: 'user' } })
 
         let isFollowed = false
         if (req.user) {
             const user_instructor = await User_Instructor.findOne({ user: req.user.id })
-            if (user_instructor.instructors.includes(req.params.id)) {
+            if (user_instructor && user_instructor.instructors.includes(req.params.id)) {
                 isFollowed = true
             } else {
                 isFollowed = false
@@ -76,7 +94,7 @@ const getInstructorByID = async (req, res) => {
         }
         res.status(200).json({
             status: "success",
-            data: { 
+            data: {
                 ...instructor._doc,
                 isFollowed: isFollowed
             },

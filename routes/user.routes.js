@@ -8,7 +8,8 @@ const { getCoursesBookmarked, updateCourseBookmarked } = require('../controllers
 const { getCoursesWatching } = require('../controllers/user_course.controllers')
 const { changePassword, getInfo, updateInfo } = require('../controllers/user.controllers');
 const { transactionHistory, recharge, vnpayReturn } = require('../controllers/payment.controllers');
-const { rentInstructor } = require('../controllers/rent.controllers');
+const { rentInstructor, getBusyTime } = require('../controllers/rent.controllers');
+const { getNotification, createNotification, readNotification } = require('../controllers/notification.controllers');
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -33,8 +34,8 @@ router.post('/course/:id/registration', buyCourse)
 router.put('/instructor/:id/follow', updateFollowInstructor)
 router.get('/instructor/following', getFollowingInstructor)
 
-router.get('/instructor', getAllInstructor)
 router.get('/instructor/:id', getInstructorByID)
+router.get('/instructor', getAllInstructor)
 router.post('/register-instructor', createInstructor)
 router.get('/status-instructor', getStatusInstructor)
 
@@ -45,9 +46,14 @@ router.put('/info', upload.fields([{ name: 'image', maxCount: 1 }]), updateInfo)
 
 router.get('/transaction-history', transactionHistory)
 
+router.get('/notification', getNotification)
+router.post('/notification', createNotification)
+router.put('/notification', readNotification)
+
 router.post('/recharge', recharge )
 router.get('/vnpay_return', vnpayReturn)
 
 router.post('/instructor/:id/rent', rentInstructor)
+router.get('/instructor/:id/busy-time', getBusyTime)
 
 module.exports = router

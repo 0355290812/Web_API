@@ -10,7 +10,34 @@ const rentInstructor = async (req, res) => {
     const timeStart = req.body.timeStart
     const subject = req.body.subject
     const description = req.body.description
+    const listRent = await Rent.find({ instructor: instructor.id, status: "approve" })
 
+    if (new Date(timeStart).getTime() < Date.now()) {
+        res.status(400).json({
+            status: "fail",
+            message: "Cannot schedule in the past"
+        })
+        return
+    }
+
+    const checkTime = listRent.some((rent) => { 
+        let dateOldRent = new Date(rent.timeStart)
+        let dateNewRent = new Date(timeStart)
+        if (dateOldRent.getTime() <= dateNewRent.getTime() && dateNewRent.getTime() <= dateOldRent.getTime() + rent.time * 60 * 60 * 1000) {
+            return true
+        }
+        if (dateNewRent.getTime() <= dateOldRent.getTime() && dateOldRent.getTime() <= dateNewRent.getTime() + time * 60 * 60 * 1000) {
+            return true
+        }
+        return false
+    })
+    if (checkTime) {
+        res.status(400).json({
+            status: "fail",
+            message: "This time has already been booked"
+        })
+        return
+    }
     const rent = await Rent.findOneAndUpdate({
         user: user
     }, { 
@@ -21,6 +48,7 @@ const rentInstructor = async (req, res) => {
         price: time * instructor.price,
         subject: subject,
         description: description,
+        roomId: "",
         status: "waiting"
     }, { upsert: true, new: true })
 
@@ -30,6 +58,24 @@ const rentInstructor = async (req, res) => {
     })
 }
 
+const getBusyTime = async (req, res) => {
+    const listRent = await Rent.find({ instructor: req.params.id, status: "approve" })
+    const busyTime = listRent.filter((rent) => {
+        return new Date(rent.timeStart).getTime() >= Date.now()
+    })
+    const listTime = busyTime.map((rent) => {
+        return {
+            timeStart: rent.timeStart,
+            timeEnd: new Date(new Date(rent.timeStart).getTime() + rent.time * 60 * 60 * 1000)
+        }
+    })
+
+    console.log("busyTime", listTime);
+    res.status(200).json({
+        status: "success",
+        data: listTime
+    })
+}
 const submitRent = async (req, res) => {
 
     await callVideo.setRestToken();
@@ -85,4 +131,4 @@ const getRents = async (req, res) => {
     })
 }
 
-module.exports = { rentInstructor, submitRent, deleteRent, getRents }
+module.exports = { rentInstructor, submitRent, deleteRent, getRents, getBusyTime }

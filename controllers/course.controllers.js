@@ -11,9 +11,18 @@ const getAllCourse = async (req, res) => {
     const value_sort = req.query.value_sort || "num_registration"
 
     const courses = await Course.find({
-        title: {
-            $regex: new RegExp(search, "i")
-        },
+        $or: [
+            {
+                title: {
+                    $regex: new RegExp(search, "iu")
+                }
+            },
+            {
+                subject: {
+                    $regex: new RegExp(search, "iu")
+                }
+            }
+        ],
         status: "approve"
     })
         .sort({ [value_sort]: sort })
@@ -41,6 +50,7 @@ const getCourseById = async (req, res) => {
     const course = await Course.findOne({ _id: req.params.id, status: "approve" })
         .populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } } })
         .populate({ path: 'instructor' })
+        .populate({ path: 'reviews', populate: { path: 'user' } })
 
     if (!course) {
         res.status(500).json({
@@ -196,6 +206,7 @@ const buyCourse = async (req, res) => {
     const course = await Course.findOne({ _id: req.params.id })
 
     const user = await User.findOne({ _id: req.user.id })
+    const instructor = await User.findOne({ _id: course.instructor })
     if (course.instructor == user.id) {
         res.status(500).json({
             status: "failed",
@@ -213,18 +224,20 @@ const buyCourse = async (req, res) => {
         return
     }
 
-    user.balance -= course.price
-    course.num_registration += 1
     const user_course = await User_Course.findOne({
         user: req.user.id
     })
 
     if (!user_course.courses.includes(req.params.id)) {
+        user.balance -= course.price
+        course.num_registration += 1
+        instructor.balance += course.price
         user_course.courses.push(req.params.id)
 
         await user_course.save()
         await user.save()
         await course.save()
+        await instructor.save()
 
         res.status(200).json({
             status: "success",
