@@ -78,6 +78,21 @@ const getBusyTime = async (req, res) => {
 }
 const submitRent = async (req, res) => {
 
+    if (req.body.status != "approve") {
+        const rent = await Rent.findOneAndUpdate({
+            instructor: req.user.id,
+            _id: req.params.id
+        }, {
+            status: "rejected"
+        }, { new: true })
+
+        res.status(200).json({
+            status: "success",
+            data: rent
+        })
+        return
+    }
+
     await callVideo.setRestToken();
     const room = await callVideo.createRoom();
     const { roomId } = room;
