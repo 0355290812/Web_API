@@ -85,4 +85,24 @@ const verifyRole = async (req, res, next) => {
     next();
 }
 
-module.exports = { createJWT, protect, comparePassword, hashPassword, verifyRole }
+const verifyAdmin = async (req, res, next) => {
+    const user = await User.findOne({ _id: req.user.id })
+
+    if (!user) {
+        res.status(401).json({
+            status: "fail",
+            message: "Not Authorized"
+        })
+        return
+    }
+    if (user.role !== "admin") {
+        res.status(401).json({
+            status: "fail",
+            message: "Access denied"
+        })
+        return 
+    } 
+
+    next();
+}
+module.exports = { createJWT, protect, comparePassword, hashPassword, verifyRole, verifyAdmin }

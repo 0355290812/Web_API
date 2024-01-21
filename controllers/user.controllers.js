@@ -203,4 +203,155 @@ const updateInfo = async (req, res) => {
         message: "Update user successfully"
     })
 }
-module.exports = { createNewUser, signin, logout, changePassword, getInfo, updateInfo }
+
+const getAllUsers = async (req, res) => {
+    const search = req.query.search 
+    const page = req.query.page || 1
+    const page_size = req.query.page_size || 10
+    let users = []
+    if (search !== "undefined") {
+     users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(search, "iu") } }).select("-password")
+    .skip((page - 1) * page_size)
+    // .limit(page_size)
+    } else {
+        users = await User.find({ role: { $ne: "admin" } }).select("-password")
+    .skip((page - 1) * page_size)
+    // .limit(page_size)
+    }
+    
+
+    res.status(200).json({
+        status: "success",
+        data: users,
+        message: "Get all users successfully"
+    })
+}
+
+const getUserById = async (req, res) => {
+    const user = await User.findOne({ _id: req.params.id }).select("-password")
+
+    if (!user) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Get user failed"
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: user,
+        message: "Success"
+    })
+}
+
+const updateUserById = async (req, res) => {
+    const user = await User.findOne({ _id: req.params.id })
+
+    if (!user) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Get user failed"
+        })
+        return
+    }
+
+    user.name = req.body.name
+    await user.save()
+
+    res.status(200).json({
+        status: "success",
+        data: user,
+        message: "Update user successfully"
+    })
+}
+
+const deleteUserById = async (req, res) => {
+    const user = await User.findOne({ _id: req.params.id })
+
+    if (!user) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Delete user failed"
+        })
+        return
+    }
+
+    if (user.role === "instructor") {
+        const instructor = await Instructor.findOneAndDelete({ user: user.id })
+        const courses = await Course.find({ instructor: user.id })
+        courses.forEach(async (course) => {
+            if (course.chapters) {
+                course.chapters.forEach(async (chapter) => {
+                    const subChapter = await Chapter.findOne({ _id: chapter })
+                    if (subChapter.lessons) {
+                        subChapter.lessons.forEach(async (lesson) => {
+                            const subLesson = await Lesson.findOne({ _id: lesson })
+                            if (lesson.lessonType === "video") {
+                                const video = await Video.findOneAndDelete({ _id: subLesson.content })
+                            } else {
+                                const quiz = await Quiz.findOneAndDelete({ _id: subLesson.content })
+                            }
+                            await subLesson.remove()
+                        })
+                    }
+                    await Chapter.deleteOne({ _id: chapter })
+                })
+            }
+            await Course.deleteOne({ _id: course.id })
+        })
+    }
+    await User.deleteOne({ _id: user.id })
+
+    res.status(200).json({
+        status: "success",
+        data: user,
+        message: "Delete user successfully"
+    })
+}
+
+const createUserByAdmin = async (req, res) => {
+    const hash = await hashPassword(req.body.password)
+
+    const usernameExist = await User.findOne({ username: req.body.username })
+    if (usernameExist) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Username already exist"
+        })
+        return
+    }
+
+    const emailExist = await User.findOne({ email: req.body.email })
+    if (emailExist) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Email already exist"
+        })
+        return
+    }
+
+    const user = await User.create({
+        username: req.body.username,
+        password: hash,
+        name: req.body.name,
+        email: req.body.email,
+        balance: req.body.balance,
+        role: req.body.role
+    })
+
+    const bookmarked = await Bookmarked.create({ user: user.id })
+    const user_course = await User_Course.create({ user: user.id })
+    const user_instructor = await User_Instructor.create({ user: user.id })
+
+    res.status(200).json({
+        status: "success",
+        data: user
+    })
+}
+module.exports = { createNewUser, signin, logout, changePassword, getInfo, updateInfo, getAllUsers, getUserById, updateUserById, deleteUserById, createUserByAdmin }
