@@ -1,7 +1,7 @@
 const express = require('express')
 const multer = require('multer');
 
-const { getInfo, updateInfo } = require('../controllers/instructor.controllers')
+const { getInfo, updateInfo, updateStatus } = require('../controllers/instructor.controllers')
 const { getCourseByInstructor, getDetailCourseByInstructor, createCourse, updateCourseByInstructor, deleteCourse } = require('../controllers/course.controllers')
 const { createLesson, getLesson, deleteLesson, updateLesson } = require('../controllers/lesson.controllers')
 const { createChapter, getChapter, deleteChapter, updateChapter } = require('../controllers/chapter.controllers')
@@ -49,7 +49,8 @@ router.delete('/video/:id', deleteVideo)
 
 
 router.get('/info', getInfo)
-router.put('/info', updateInfo)
+router.put('/info', upload.fields([{ name: 'image', maxCount: 1}]), updateInfo)
+router.patch('/status', updateStatus)
 
 router.get('/rent', getRents)
 router.put('/rent/:id', submitRent)

@@ -107,11 +107,11 @@ const getInstructorByID = async (req, res) => {
 
 const createInstructor = async (req, res) => {
 
-    let certificates = req.body.certificates.map((item, index) => { 
-        return { name: item, image: req.files.certificates[index].path } 
+    let certificates = req.body.certificates.map((item, index) => {
+        return { name: item, image: req.files.certificates[index].path }
     })
-    let academic_level = req.body.academic_level.map((item, index) => { 
-        return { name: item, image: req.files.academic_level[index].path } 
+    let academic_level = req.body.academic_level.map((item, index) => {
+        return { name: item, image: req.files.academic_level[index].path }
     })
     const instructor = await Instructor.findOneAndUpdate({
         user: req.user.id
@@ -177,23 +177,36 @@ const updateInfo = async (req, res) => {
         user: req.user.id
     }, {
         subjects: req.body.subjects,
-        certificates: req.body.certificates,
-        academic_level: req.body.academic_level,
         description: req.body.description,
         active_status: req.body.active_status,
         price: req.body.price
     }, { new: true }).populate('user')
 
-    const user = await User.findOneAndUpdate({
-        _id: req.user.id
-    }, {
-        image: req.files.image[0].path,
-    }, { new: true })
+    if (req.files && req.files.image) {
+        const user = await User.findOneAndUpdate({
+            _id: req.user.id
+        }, {
+            image: req.files.image[0].path,
+        }, { new: true })
+    }
 
     res.status(200).json({
         status: "Success",
         data: instructor,
         message: "Information has been changed"
+    })
+}
+
+const updateStatus = async (req, res) => {
+    const instructor = await Instructor.findOneAndUpdate({
+        user: req.user.id
+    }, {
+        active_status: req.body.active_status
+    }, { new: true })
+
+    res.status(200).json({
+        status: "success",
+        data: instructor
     })
 }
 
@@ -267,4 +280,4 @@ const getFollowingInstructor = async (req, res) => {
         message: "Get success"
     })
 }
-module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor, getFollowingInstructor }
+module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor, getFollowingInstructor, updateStatus }
