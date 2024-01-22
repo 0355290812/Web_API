@@ -44,7 +44,7 @@ const course = new mongoose.Schema({
     }],
     avg_rating: {
         type: Number,
-        default: null
+        default: 0
     },
     price: {
         type: Number,

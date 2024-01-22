@@ -15,17 +15,20 @@ const review = mongoose.Schema({
         ref: 'user'
     },
     feedback: {
-        content: {
-            type: String,
-            required: true
+        type: {
+            content: {
+                type: String,
+                required: true
+            },
+            instructor: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'instructor'
+            },
+            date: {
+                type: Date
+            }
         },
-        instructor: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'instructor'
-        },
-        date: {
-            type: Date
-        }
+        required: false
     }
 }, { timestamp: true })
 

@@ -10,6 +10,7 @@ const { changePassword, getInfo, updateInfo } = require('../controllers/user.con
 const { transactionHistory, recharge, vnpayReturn } = require('../controllers/payment.controllers');
 const { rentInstructor, getBusyTime } = require('../controllers/rent.controllers');
 const { getNotification, createNotification, readNotification } = require('../controllers/notification.controllers');
+const { createReviewCourse, createReviewInstructor } = require('../controllers/review.controllers');
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -30,9 +31,11 @@ router.get('/course/watching', getCoursesWatching)
 router.get('/course', getAllCourse)
 router.get('/course/:id', getCourseById)
 router.post('/course/:id/registration', buyCourse)
+router.post('/course/:id/review', createReviewCourse)
 
 router.put('/instructor/:id/follow', updateFollowInstructor)
 router.get('/instructor/following', getFollowingInstructor)
+router.post('/instructor/:id/review', createReviewInstructor)
 
 router.get('/instructor/:id', getInstructorByID)
 router.get('/instructor', getAllInstructor)

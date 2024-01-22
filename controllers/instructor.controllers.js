@@ -280,4 +280,43 @@ const getFollowingInstructor = async (req, res) => {
         message: "Get success"
     })
 }
+
+const getAllInstructorByAdmin = async (req, res) => {
+    const page_size = req.query.page_size || 20
+    const page = req.query.page || 1
+    const search = req.query.search || ""
+    const users = await User.find({
+        role: "instructor",
+        name: {
+            $regex: search, $options: 'i'
+        }
+    }, {
+        select: '_id'
+    })
+    
+            const instructor = await Instructor.find({
+                $or: [
+                    {
+                        user: {
+                            $in: users
+                        }
+                    },
+                    {
+                        subjects: {
+                            $regex: search, $options: 'i'
+                        }
+                    }
+                ]
+            })
+                .sort({ [value_sort]: sort })
+                .skip((page - 1) * page_size)
+                .limit(page_size)
+                .populate('user')
+
+            res.status(200).json({
+                status: "success",
+                data: instructor,
+                message: 'Get all instructors'
+            })
+}
 module.exports = { getAllInstructor, getInstructorByID, createInstructor, getInfo, updateInfo, getStatusInstructor, updateFollowInstructor, getFollowingInstructor, updateStatus }

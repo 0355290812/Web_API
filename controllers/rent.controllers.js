@@ -134,10 +134,11 @@ const deleteRent = async (req, res) => {
 
 const getRents = async (req, res) => {
     const instructor = await Instructor.findOne({ user: req.user.id })
-    const status = req.params.status
+    const status = req.query.status
     const rents = await Rent.find({
         instructor: instructor.id,
-        status: status == "approve" ? "approve" : "waiting"
+        status: status == "approve" ? "approve" : "waiting",
+        timeStart: { $gte: Date.now() }
     }).populate({path: "user"})
 
     res.status(200).json({

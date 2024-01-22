@@ -205,24 +205,34 @@ const updateInfo = async (req, res) => {
 }
 
 const getAllUsers = async (req, res) => {
-    const search = req.query.search 
+    const search = req.query.search == "undefined" ? "" : req.query.search
+    const name = req.query.name == "undefined" ? "" : req.query.name
     const page = req.query.page || 1
     const page_size = req.query.page_size || 10
+    let totalSize = 0;
     let users = []
     if (search !== "undefined") {
-     users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(search, "iu") } }).select("-password")
-    .skip((page - 1) * page_size)
-    // .limit(page_size)
+        users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password")
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+            .sort({ createdAt: -1 })
+        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
+
     } else {
         users = await User.find({ role: { $ne: "admin" } }).select("-password")
-    .skip((page - 1) * page_size)
-    // .limit(page_size)
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+            .sort({ createdAt: -1 })
+        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
+
     }
-    
 
     res.status(200).json({
         status: "success",
-        data: users,
+        data: {
+            users,
+            totalSize
+        },
         message: "Get all users successfully"
     })
 }
@@ -259,6 +269,7 @@ const updateUserById = async (req, res) => {
     }
 
     user.name = req.body.name
+    // user.role = req.body.role
     await user.save()
 
     res.status(200).json({
@@ -345,10 +356,11 @@ const createUserByAdmin = async (req, res) => {
         role: req.body.role
     })
 
-    const bookmarked = await Bookmarked.create({ user: user.id })
-    const user_course = await User_Course.create({ user: user.id })
-    const user_instructor = await User_Instructor.create({ user: user.id })
-
+    if (req.body.role === "student") {
+        const bookmarked = await Bookmarked.create({ user: user.id })
+        const user_course = await User_Course.create({ user: user.id })
+        const user_instructor = await User_Instructor.create({ user: user.id })
+    }
     res.status(200).json({
         status: "success",
         data: user
