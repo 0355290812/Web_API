@@ -62,7 +62,7 @@ const getCourseById = async (req, res) => {
     }
     let isBookmarked = false
     let isRegistered = false
-    let hasReview = true
+    let hasReview = false
     try {
         if (req.user) {
             const user_course = await User_Course.findOne({ user: req.user.id })
@@ -76,7 +76,7 @@ const getCourseById = async (req, res) => {
                 isRegistered = true
                 course.reviews.forEach(review => {
                     if (review.user._id == req.user.id) {
-                        hasReview = false
+                        hasReview = true
                     }
                 })
             } else {
@@ -98,6 +98,7 @@ const getCourseById = async (req, res) => {
         } else {
             isRegistered = false
             isBookmarked = false
+            hasReview = true
         }
 
 

@@ -85,7 +85,7 @@ const getInstructorByID = async (req, res) => {
         const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user').populate({ path: 'reviews', populate: { path: 'user' } })
 
         let isFollowed = false
-        let hasReview = true
+        let hasReview = false
         if (req.user) {
             const user_instructor = await User_Instructor.findOne({ user: req.user.id })
             if (user_instructor && user_instructor.instructors.includes(req.params.id)) {
@@ -97,11 +97,14 @@ const getInstructorByID = async (req, res) => {
             if (rent) {
                 instructor.reviews.forEach(review => {
                 if (review.user._id == req.user.id) {
-                    hasReview = false
+                    hasReview = true
                 }
             })
             }
             
+        } else {
+            isFollowed = false
+            hasReview = true
         }
         res.status(200).json({
             status: "success",
