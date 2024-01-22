@@ -2,6 +2,7 @@ const Instructor = require('../models/instructor.models')
 const User = require('../models/user.models')
 const review = require('../models/review.models')
 const User_Instructor = require('../models/user_instructor.models')
+const Rent = require('../models/rent.models')
 
 const getAllInstructor = async (req, res) => {
     const page_size = req.query.page_size || 20
@@ -84,6 +85,7 @@ const getInstructorByID = async (req, res) => {
         const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user').populate({ path: 'reviews', populate: { path: 'user' } })
 
         let isFollowed = false
+        let hasReview = true
         if (req.user) {
             const user_instructor = await User_Instructor.findOne({ user: req.user.id })
             if (user_instructor && user_instructor.instructors.includes(req.params.id)) {
@@ -91,12 +93,22 @@ const getInstructorByID = async (req, res) => {
             } else {
                 isFollowed = false
             }
+            const rent = await Rent.findOne({ user: req.user.id, instructor: req.params.id, status: {$ne: "rejected"} })
+            if (rent) {
+                instructor.reviews.forEach(review => {
+                if (review.user._id == req.user.id) {
+                    hasReview = false
+                }
+            })
+            }
+            
         }
         res.status(200).json({
             status: "success",
             data: {
                 ...instructor._doc,
-                isFollowed: isFollowed
+                isFollowed: isFollowed,
+                hasReview: hasReview
             },
             message: "Get Success"
         })
