@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const review = mongoose.Schema({
-    start: {
+    star: {
         type: Number,
         min: 0,
         max: 5

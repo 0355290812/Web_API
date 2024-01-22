@@ -6,7 +6,7 @@ const User_Instructor = require('../models/user_instructor.models');
 const Instructor = require('../models/instructor.models');
 
 const createReviewCourse = async (req, res) => {
-    const  courseId  = req.params.id;
+    const courseId = req.params.id;
     const { content, star } = req.body;
     const user = await User.findOne({ _id: req.user.id });
     const course = await Course.findOne({ _id: courseId });
@@ -28,7 +28,7 @@ const createReviewCourse = async (req, res) => {
     await course.save()
     res.status(200).json({
         status: "success",
-        data: review,
+        data: await review.populate('user'),
         message: 'Create review successfully'
     })
 }
@@ -56,7 +56,7 @@ const createReviewInstructor = async (req, res) => {
     await instructor.save()
     res.status(200).json({
         status: "success",
-        data: review,
+        data: await review.populate('user'),
         message: 'Create review successfully'
     })
 }
