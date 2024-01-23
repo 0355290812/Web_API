@@ -39,7 +39,8 @@ const rentInstructor = async (req, res) => {
         return
     }
     const rent = await Rent.findOneAndUpdate({
-        user: user
+        user: user,
+        instructor: instructor.id,
     }, { 
         user: user,
         instructor: instructor.id,
