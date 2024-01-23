@@ -121,7 +121,12 @@ const getInstructorByID = async (req, res) => {
 }
 
 const createInstructor = async (req, res) => {
-
+    if (typeof req.body.certificates == 'string') {
+        req.body.certificates = [req.body.certificates]
+    }
+    if (typeof req.body.academic_level == 'string') {
+        req.body.academic_level = [req.body.academic_level]
+    }
     let certificates = req.body.certificates.map((item, index) => {
         return { name: item, image: req.files.certificates[index].path }
     })
