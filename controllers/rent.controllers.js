@@ -147,4 +147,33 @@ const getRents = async (req, res) => {
     })
 }
 
-module.exports = { rentInstructor, submitRent, deleteRent, getRents, getBusyTime }
+const getListRent = async (req, res) => {
+    const user = await User.findOne({ _id: req.user.id })
+    const status = req.query.status
+    const rents = await Rent.find({
+        user: user.id,
+        status: status == "approve" ? "approve" : "waiting",
+        timeStart: { $gte: Date.now() }
+    }).populate({path: "instructor", populate: {path: "user"}})
+
+    res.status(200).json({
+        status: "success",
+        data: rents
+    })
+}
+
+const cancelRent = async (req, res) => {
+    const rent = await Rent.findOneAndUpdate({
+        user: req.user.id,
+        _id: req.params.id
+    }, {
+        status: "rejected"
+    }, { new: true })
+
+    res.status(200).json({
+        status: "success",
+        data: rent
+    })
+}
+
+module.exports = { rentInstructor, submitRent, deleteRent, getRents, getBusyTime, getListRent, cancelRent }

@@ -8,7 +8,7 @@ const { getCoursesBookmarked, updateCourseBookmarked } = require('../controllers
 const { getCoursesWatching } = require('../controllers/user_course.controllers')
 const { changePassword, getInfo, updateInfo } = require('../controllers/user.controllers');
 const { transactionHistory, recharge, vnpayReturn } = require('../controllers/payment.controllers');
-const { rentInstructor, getBusyTime } = require('../controllers/rent.controllers');
+const { rentInstructor, getBusyTime, getListRent, cancelRent } = require('../controllers/rent.controllers');
 const { getNotification, createNotification, readNotification } = require('../controllers/notification.controllers');
 const { createReviewCourse, createReviewInstructor } = require('../controllers/review.controllers');
 
@@ -58,5 +58,8 @@ router.get('/vnpay_return', vnpayReturn)
 
 router.post('/instructor/:id/rent', rentInstructor)
 router.get('/instructor/:id/busy-time', getBusyTime)
+
+router.get('/rent', getListRent)
+router.put('/rent/:id', cancelRent)
 
 module.exports = router

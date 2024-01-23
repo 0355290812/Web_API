@@ -224,7 +224,6 @@ const getAllUsers = async (req, res) => {
             .limit(page_size)
             .sort({ createdAt: -1 })
         totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
-
     }
 
     res.status(200).json({
@@ -239,7 +238,7 @@ const getAllUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
     const user = await User.findOne({ _id: req.params.id }).select("-password")
-
+    
     if (!user) {
         res.status(500).json({
             status: "failed",
@@ -366,4 +365,16 @@ const createUserByAdmin = async (req, res) => {
         data: user
     })
 }
-module.exports = { createNewUser, signin, logout, changePassword, getInfo, updateInfo, getAllUsers, getUserById, updateUserById, deleteUserById, createUserByAdmin }
+module.exports = { 
+    createNewUser, 
+    signin, 
+    logout, 
+    changePassword, 
+    getInfo, 
+    updateInfo, 
+    getAllUsers, 
+    getUserById, 
+    updateUserById, 
+    deleteUserById, 
+    createUserByAdmin
+}
