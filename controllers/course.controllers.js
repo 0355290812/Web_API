@@ -293,6 +293,9 @@ const deleteCourse = async (req, res) => {
             })
             return
         }
+
+        await Course.deleteOne({ _id: course.id })
+        
         res.status(200).json({
             status: "success",
             data: course,
