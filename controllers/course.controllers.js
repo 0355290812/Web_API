@@ -68,7 +68,7 @@ const getCourseById = async (req, res) => {
     }
     let isBookmarked = false
     let isRegistered = false
-    let hasReview = false
+    let hasReview = true
     try {
         if (req.user) {
             const user_course = await User_Course.findOne({ user: req.user.id })
@@ -80,11 +80,7 @@ const getCourseById = async (req, res) => {
             }
             if (user_course.courses && user_course.courses.includes(req.params.id)) {
                 isRegistered = true
-                course.reviews.forEach(review => {
-                    if (review.user._id == req.user.id) {
-                        hasReview = true
-                    }
-                })
+                hasReview = course.reviews.some(review => review.user._id.toString() === req.user.id.toString())
             } else {
                 isRegistered = false
             }
