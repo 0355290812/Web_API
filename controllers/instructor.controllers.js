@@ -357,8 +357,8 @@ const getInstructorByAdmin = async (req, res) => {
 
 const updateInstructorByAdmin = async (req, res) => {
     const instructor = await Instructor.findOne({ _id: req.params.id })
-    const name = req.body.name
-    const status = req.body.status
+    const name = req.body.user.name ? req.body.user.name : instructor.user.name
+    const status = req.body.status ? req.body.status : instructor.status
 
     if (!instructor) {
         res.status(500).json({
@@ -371,6 +371,9 @@ const updateInstructorByAdmin = async (req, res) => {
 
     const user = await User.findOne({ _id: instructor.user })
     user.name = name
+    if (status == "approve") {
+        user.role = "instructor"
+    }
     await user.save()
 
     instructor.status = status

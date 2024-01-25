@@ -274,7 +274,7 @@ const checkRegistered = async (req, res) => {
 
 const deleteCourse = async (req, res) => {
     try {
-        const course = await Course.findOneAndDelete({ _id: req.params.id })
+        const course = await Course.findOne({ _id: req.params.id })
 
         if (!course) {
             res.status(404).json({
@@ -285,6 +285,14 @@ const deleteCourse = async (req, res) => {
             return
         }
 
+        if (course.num_registration != 0) {
+            res.status(500).json({
+                status: "fail",
+                data: course,
+                message: "Khoá học đã có người đăng ký không thể xóa"
+            })
+            return
+        }
         res.status(200).json({
             status: "success",
             data: course,
