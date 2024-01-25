@@ -2,6 +2,12 @@ const Course = require('../models/course.models')
 const User_Course = require('../models/user_course.models')
 const User = require('../models/user.models')
 const Bookmarked = require('../models/bookmarked.models')
+const Video = require('../models/video.models')
+const Quizz = require('../models/quizz.models')
+const Chapter = require('../models/chapter.models')
+const Lesson = require('../models/lesson.models')
+const Instructor = require('../models/instructor.models')
+
 
 const getAllCourse = async (req, res) => {
     const page_size = req.query.page_size || 20
@@ -47,7 +53,7 @@ const getAllCourse = async (req, res) => {
 }
 
 const getCourseById = async (req, res) => {
-    const course = await Course.findOne({ _id: req.params.id, status: "approve" })
+    const course = await Course.findOne({ _id: req.params.id })
         .populate({ path: 'chapters', populate: { path: 'lessons', populate: { path: 'content' } } })
         .populate({ path: 'instructor' })
         .populate({ path: 'reviews', populate: { path: 'user' } })
@@ -294,4 +300,156 @@ const deleteCourse = async (req, res) => {
 
 }
 
-module.exports = { getAllCourse, getCourseById, getCourseByInstructor, getDetailCourseByInstructor, createCourse, updateCourseByInstructor, buyCourse, checkRegistered, deleteCourse }
+const getCoursesByAdmin = async (req, res) => {
+    const page_size = req.query.page_size || 20
+    const page = req.query.page || 1
+    let search = ""
+
+    if (req.query.search) {
+        search = JSON.parse(req.query.search)
+    }
+
+    if (req.query.status) {
+        const courses = await Course.find({
+            status: JSON.parse(req.query.status),
+            title: {
+                $regex: new RegExp(search, "iu")
+            }
+        })
+            .populate('instructor')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+        const totalSize = await Course.find(
+            {
+                status: JSON.parse(req.query.status),
+                title: {
+                    $regex: new RegExp(search, "iu")
+                }
+            }).countDocuments()
+        res.status(200).json({
+            status: "success",
+            data: { courses, totalSize },
+            message: 'Get all courses'
+        })
+    } else {
+        const courses = await Course.find({
+            title: {
+                $regex: new RegExp(search, "iu")
+            }
+        })
+            .populate('instructor')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+        const totalSize = await Course.find(
+            {
+                title: {
+                    $regex: new RegExp(search, "iu")
+                }
+            }).countDocuments()
+        res.status(200).json({
+            status: "success",
+            data: { courses, totalSize },
+            message: 'Get all courses'
+        })
+    }
+}
+
+const getCourseByAdmin = async (req, res) => {
+    const course = await Course.findOne({ _id: req.params.id }).populate('instructor')
+
+    if (!course) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Course does not exist"
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: course,
+        message: `Get course ${course.title}`
+    })
+}
+
+const updateCourseByAdmin = async (req, res) => {
+    const course = await Course.findOneAndUpdate({
+        _id: req.params.id
+    }, {
+        title: req.body.title,
+        status: req.body.status
+    }, { new: true })
+
+    if (!course) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Update Failed"
+        })
+        return
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: course,
+        message: "Update course successfully"
+    })
+}
+
+const deleteCourseByAdmin = async (req, res) => {
+    const course = await Course.findOne({ _id: req.params.id })
+    const instructor = await Instructor.findOne({ user: course.instructor })
+
+    if (!course) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Course does not exist"
+        })
+        return
+    }
+
+    if (course.chapters) {
+        course.chapters.forEach(async (chapter) => {
+            const subChapter = await Chapter.findOne({ _id: chapter })
+            if (subChapter.lessons) {
+                subChapter.lessons.forEach(async (lesson) => {
+                    const subLesson = await Lesson.findOne({ _id: lesson })
+                    if (lesson.lessonType === "video") {
+                        const video = await Video.findOneAndDelete({ _id: subLesson.content })
+                    } else {
+                        const quiz = await Quizz.findOneAndDelete({ _id: subLesson.content })
+                    }
+                    await subLesson.remove()
+                })
+            }
+            await Chapter.deleteOne({ _id: chapter })
+        })
+    }
+    await Course.deleteOne({ _id: course.id })
+    instructor.num_course -= 1
+    await instructor.save()
+    res.status(200).json({
+        status: "success",
+        data: course,
+        message: "Delete Success"
+    })
+}
+module.exports = {
+    getAllCourse,
+    getCourseById,
+    getCourseByInstructor,
+    getDetailCourseByInstructor,
+    createCourse,
+    updateCourseByInstructor,
+    buyCourse,
+    checkRegistered,
+    deleteCourse,
+    getCourseByAdmin,
+    getCoursesByAdmin,
+    updateCourseByAdmin,
+    deleteCourseByAdmin,
+}

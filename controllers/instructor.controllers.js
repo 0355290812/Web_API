@@ -3,6 +3,10 @@ const User = require('../models/user.models')
 const review = require('../models/review.models')
 const User_Instructor = require('../models/user_instructor.models')
 const Rent = require('../models/rent.models')
+const Quizz = require('../models/quizz.models')
+const Lesson = require('../models/lesson.models')
+const Chapter = require('../models/chapter.models')
+const Video = require('../models/video.models')
 
 const getAllInstructor = async (req, res) => {
     const page_size = req.query.page_size || 20
@@ -93,15 +97,15 @@ const getInstructorByID = async (req, res) => {
             } else {
                 isFollowed = false
             }
-            const rent = await Rent.findOne({ user: req.user.id, instructor: req.params.id, status: {$ne: "rejected"} })
+            const rent = await Rent.findOne({ user: req.user.id, instructor: req.params.id, status: { $ne: "rejected" } })
             if (rent) {
                 instructor.reviews.forEach(review => {
-                if (review.user._id == req.user.id) {
-                    hasReview = true
-                }
-            })
+                    if (review.user._id == req.user.id) {
+                        hasReview = true
+                    }
+                })
             }
-            
+
         } else {
             isFollowed = false
             hasReview = true
@@ -304,75 +308,108 @@ const getFollowingInstructor = async (req, res) => {
 const getAllInstructorByAdmin = async (req, res) => {
     const page_size = req.query.page_size || 20
     const page = req.query.page || 1
-    const search = req.query.search || ""
+    const search = req.query.search ? JSON.parse(req.query.search) : ""
+    const status = req.query.status ? JSON.parse(req.query.status) : ""
     const users = await User.find({
-        role: "instructor",
         name: {
             $regex: search, $options: 'i'
         }
     }, {
         select: '_id'
     })
-    
-            const instructors = await Instructor.find({
-                $or: [
-                    {
-                        user: {
-                            $in: users
-                        }
-                    },
-                    {
-                        subjects: {
-                            $regex: search, $options: 'i'
-                        }
-                    }
-                ]
-            })
-                .sort({ createdAt: -1 })
-                .skip((page - 1) * page_size)
-                .limit(page_size)
-            const totalSize = await Instructor.find(
-                    {
-                        user: {
-                            $in: users
-                        }
-                    }).countDocuments()
-            res.status(200).json({
-                status: "success",
-                data: { instructors, totalSize },
-                message: 'Get all instructors'
-            })
-}
 
-const getAllUsers = async (req, res) => {
-    const search = req.query.search == "undefined" ? "" : req.query.search
-    const name = req.query.name == "undefined" ? "" : req.query.name
-    const page = req.query.page || 1
-    const page_size = req.query.page_size || 10
-    let totalSize = 0;
-    let users = []
-    if (search !== "undefined") {
-        users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password")
-            .skip((page - 1) * page_size)
-            .limit(page_size)
-            .sort({ createdAt: -1 })
-        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
-
-    } else {
-        users = await User.find({ role: { $ne: "admin" } }).select("-password")
-            .skip((page - 1) * page_size)
-            .limit(page_size)
-            .sort({ createdAt: -1 })
-        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
-    }
-
+    const instructors = await Instructor.find({
+        user: {
+            $in: users
+        },
+        status: {
+            $regex: status, $options: 'i'
+        }
+    })
+        .populate('user')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * page_size)
+        .limit(page_size)
+    const totalSize = await Instructor.find(
+        {
+            user: {
+                $in: users
+            },
+            status: {
+                $regex: status, $options: 'i'
+            }
+        }).countDocuments()
     res.status(200).json({
         status: "success",
-        data: {
-            users,
-            totalSize
-        },
-        message: "Get all users successfully"
+        data: { instructors, totalSize },
+        message: 'Get all instructors'
+    })
+}
+
+const getInstructorByAdmin = async (req, res) => {
+    const instructor = await Instructor.findOne({ _id: req.params.id }).populate('user')
+    res.status(200).json({
+        status: "success",
+        data: instructor,
+        message: "Get Success"
+    })
+}
+
+const updateInstructorByAdmin = async (req, res) => {
+    const instructor = await Instructor.findOne({ _id: req.params.id })
+    const name = req.body.name
+    const status = req.body.status
+
+    if (!instructor) {
+        res.status(500).json({
+            status: "failed",
+            data: [],
+            message: "Update failed"
+        })
+        return
+    }
+
+    const user = await User.findOne({ _id: instructor.user })
+    user.name = name
+    await user.save()
+
+    instructor.status = status
+    await instructor.save()
+    res.status(200).json({
+        status: "success",
+        data: instructor,
+        message: "Update success"
+    })
+}
+
+const deleteInstructorByAdmin = async (req, res) => {
+    const instructor = await Instructor.findOne({ _id: req.params.id })
+    const courses = await Course.find({ instructor: instructor.user.id })
+    courses.forEach(async (course) => {
+        if (course.chapters) {
+            course.chapters.forEach(async (chapter) => {
+                const subChapter = await Chapter.findOne({ _id: chapter })
+                if (subChapter.lessons) {
+                    subChapter.lessons.forEach(async (lesson) => {
+                        const subLesson = await Lesson.findOne({ _id: lesson })
+                        if (lesson.lessonType === "video") {
+                            const video = await Video.findOneAndDelete({ _id: subLesson.content })
+                        } else {
+                            const quiz = await Quizz.findOneAndDelete({ _id: subLesson.content })
+                        }
+                        await subLesson.remove()
+                    })
+                }
+                await Chapter.deleteOne({ _id: chapter })
+            })
+        }
+        await Course.deleteOne({ _id: course.id })
+    })
+    await Instructor.deleteOne({ _id: req.params.id })
+    res.status(200).json({
+        status: "success",
+        data: instructor,
+        message: "Delete success"
     })
 }
 
@@ -505,15 +542,18 @@ const createUserByAdmin = async (req, res) => {
         data: user
     })
 }
-module.exports = { 
-    getAllInstructor, 
-    getInstructorByID, 
-    createInstructor, 
-    getInfo, 
-    updateInfo, 
-    getStatusInstructor, 
-    updateFollowInstructor, 
-    getFollowingInstructor, 
-    updateStatus, 
-    getAllInstructorByAdmin 
+module.exports = {
+    getAllInstructor,
+    getInstructorByID,
+    createInstructor,
+    getInfo,
+    updateInfo,
+    getStatusInstructor,
+    updateFollowInstructor,
+    getFollowingInstructor,
+    updateStatus,
+    getAllInstructorByAdmin,
+    getInstructorByAdmin,
+    updateInstructorByAdmin,
+    deleteInstructorByAdmin,
 }

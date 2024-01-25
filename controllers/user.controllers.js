@@ -5,7 +5,12 @@ const Bookmarked = require('../models/bookmarked.models')
 const User_Course = require('../models/user_course.models')
 const User_Instructor = require('../models/user_instructor.models')
 const jwt = require('jsonwebtoken')
-
+const Instructor = require('../models/instructor.models')
+const Course = require('../models/course.models')
+const Chapter = require('../models/chapter.models')
+const Lesson = require('../models/lesson.models')
+const Video = require('../models/video.models')
+const Quizz = require('../models/quizz.models')
 const createNewUser = async (req, res) => {
     const hash = await hashPassword(req.body.password)
 
@@ -56,6 +61,15 @@ const signin = async (req, res) => {
     const user = await User.findOne({
         username: req.body.username
     })
+    
+    if (!user) {
+        res.status(404).json({
+            status: "failed",
+            data: [],
+            message: "Username not found"
+        })
+        return
+    }
 
     const isValid = await comparePassword(req.body.password, user.password)
 
@@ -205,26 +219,17 @@ const updateInfo = async (req, res) => {
 }
 
 const getAllUsers = async (req, res) => {
-    const search = req.query.search == "undefined" ? "" : req.query.search
-    const name = req.query.name == "undefined" ? "" : req.query.name
+    const search = req.query.search ? JSON.parse(req.query.search) : ""
+    const name = req.query.name ? JSON.parse(req.query.name) : ""
     const page = req.query.page || 1
     const page_size = req.query.page_size || 10
     let totalSize = 0;
     let users = []
-    if (search !== "undefined") {
-        users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password")
-            .skip((page - 1) * page_size)
-            .limit(page_size)
-            .sort({ createdAt: -1 })
-        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
-
-    } else {
-        users = await User.find({ role: { $ne: "admin" } }).select("-password")
-            .skip((page - 1) * page_size)
-            .limit(page_size)
-            .sort({ createdAt: -1 })
-        totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
-    }
+    users = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password")
+        .skip((page - 1) * page_size)
+        .limit(page_size)
+        .sort({ createdAt: -1 })
+    totalSize = await User.find({ role: { $ne: "admin" }, name: { $regex: new RegExp(name, "iu") }, username: { $regex: new RegExp(search, "iu") } }).select("-password").countDocuments()
 
     res.status(200).json({
         status: "success",
@@ -238,7 +243,7 @@ const getAllUsers = async (req, res) => {
 
 const getUserById = async (req, res) => {
     const user = await User.findOne({ _id: req.params.id }).select("-password")
-    
+
     if (!user) {
         res.status(500).json({
             status: "failed",
@@ -303,9 +308,9 @@ const deleteUserById = async (req, res) => {
                             if (lesson.lessonType === "video") {
                                 const video = await Video.findOneAndDelete({ _id: subLesson.content })
                             } else {
-                                const quiz = await Quiz.findOneAndDelete({ _id: subLesson.content })
+                                const quiz = await Quizz.findOneAndDelete({ _id: subLesson.content })
                             }
-                            await subLesson.remove()
+                            await Lesson.deleteOne({ _id: lesson })
                         })
                     }
                     await Chapter.deleteOne({ _id: chapter })
@@ -365,16 +370,16 @@ const createUserByAdmin = async (req, res) => {
         data: user
     })
 }
-module.exports = { 
-    createNewUser, 
-    signin, 
-    logout, 
-    changePassword, 
-    getInfo, 
-    updateInfo, 
-    getAllUsers, 
-    getUserById, 
-    updateUserById, 
-    deleteUserById, 
+module.exports = {
+    createNewUser,
+    signin,
+    logout,
+    changePassword,
+    getInfo,
+    updateInfo,
+    getAllUsers,
+    getUserById,
+    updateUserById,
+    deleteUserById,
     createUserByAdmin
 }
