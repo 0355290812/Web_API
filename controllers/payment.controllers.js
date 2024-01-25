@@ -1,5 +1,6 @@
 const Payment = require('../models/payment.models');
 const moment = require('moment');
+const User = require('../models/user.models');
 
 const transactionHistory = async (req, res) => {
     const payment = await Payment.find({ user: req.user.id })
